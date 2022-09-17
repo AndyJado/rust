@@ -54,7 +54,23 @@ borrowck_returned_lifetime_wrong =
     {$mir_def_name} was supposed to return data with lifetime `{$outlived_fr_name}` but it is returning data with lifetime `{$fr_name}`
 
 borrowck_returned_lifetime_short =
-    {$category_desc}requires that `{$free_region_name}` must outlive `{$outlived_fr_name}`
+    {$category ->
+        [Assignment] assignment {""}
+        [Return] returning this value {""}
+        [Yield] yielding this value {""}
+        [UseAsConst] using this value as a constant {""}
+        [UseAsStatic] using this value as a static {""}
+        [Cast] cast {""}
+        [CallArgument] argument {""}
+        [TypeAnnotation] type annotation {""}
+        [ClosureBounds] closure body {""}
+        [SizedBound] proving this value is `Sized` {""}
+        [CopyBound] copying this value {""}
+        [OpaqueType] opaque type {""}
+        [ClosureUpvar] closure capture {""}
+        [Usage] this usage {""}
+        *[other] {""}
+    }requires that `{$free_region_name}` must outlive `{$outlived_fr_name}`
 
 borrowck_used_impl_require_static =
     the used `impl` has a `'static` requirement

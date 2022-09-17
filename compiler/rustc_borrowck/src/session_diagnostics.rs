@@ -131,7 +131,7 @@ pub(crate) enum LifetimeReturnCategoryErr<'a> {
     ShortReturn {
         #[primary_span]
         span: Span,
-        category_desc: &'static str,
+        category: String,
         free_region_name: &'a RegionName,
         outlived_fr_name: RegionName,
     },

@@ -25,6 +25,7 @@ use rustc_span::symbol::{kw, sym, Ident};
 use rustc_span::Span;
 
 use crate::borrowck_errors;
+use crate::nll::ConstraintDiagDescription;
 use crate::session_diagnostics::{
     FnMutError, FnMutReturnTypeErr, GenericDoesNotLiveLongEnough, LifetimeOutliveErr,
     LifetimeReturnCategoryErr, RequireStaticErr, VarHereDenote,
@@ -61,6 +62,24 @@ impl<'tcx> ConstraintDescription for ConstraintCategory<'tcx> {
             | ConstraintCategory::Boring
             | ConstraintCategory::BoringNoLocation
             | ConstraintCategory::Internal => "",
+        }
+    }
+}
+
+impl<'tcx> ConstraintDiagDescription for ConstraintCategory<'tcx> {
+    fn arg_desc(&self) -> String {
+        // Must end with a space. Allows for empty names to be provided.
+        match self {
+            ConstraintCategory::Return(_) => "Return".to_string(),
+            ConstraintCategory::CallArgument(_) => "CallArgument".to_string(),
+            ConstraintCategory::ClosureUpvar(_) => "ClosureUpvar".to_string(),
+
+            ConstraintCategory::Predicate(_)
+            | ConstraintCategory::Boring
+            | ConstraintCategory::BoringNoLocation
+            | ConstraintCategory::Internal => "other".to_string(),
+
+            _ => format!("{:?}", self),
         }
     }
 }
@@ -705,7 +724,7 @@ impl<'a, 'tcx> MirBorrowckCtxt<'a, 'tcx> {
             },
             _ => LifetimeReturnCategoryErr::ShortReturn {
                 span: *span,
-                category_desc: category.description(),
+                category: category.arg_desc(),
                 free_region_name: &fr_name,
                 outlived_fr_name,
             },
