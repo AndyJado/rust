@@ -58,3 +58,275 @@ borrowck_returned_lifetime_short =
 
 borrowck_used_impl_require_static =
     the used `impl` has a `'static` requirement
+
+borrowck_data_moved_here =
+    data moved here
+
+borrowck_and_data_moved_here = ...and here
+
+borrowck_moved_var_cannot_copy =
+    move occurs because these variables have types that don't implement the `Copy` trait
+
+borrowck_borrow_later_captured_by_trait_object =
+    {$borrow_desc}borrow later captured here by trait object
+
+borrowck_borrow_later_captured_by_closure =
+    {$borrow_desc}borrow later captured here by closure
+
+borrowck_borrow_later_stored_here =
+    {$borrow_desc}borrow later stored here
+
+borrowck_used_here_by_closure =
+    used here by closure
+
+borrowck_trait_capture_borrow_in_later_iteration_loop =
+    {$borrow_desc}borrow captured here by trait object, in later iteration of loop
+
+borrowck_closure_capture_borrow_in_later_iteration_loop =
+    {$borrow_desc}borrow captured here by closure, in later iteration of loop
+
+borrowck_call_used_borrow_in_later_iteration_loop =
+    {$borrow_desc}borrow used by call, in later iteration of loop
+
+borrowck_used_borrow_in_later_iteration_loop =
+    {$borrow_desc}borrow used here, in later iteration of loop
+
+borrowck_bl_trait_capture_borrow_in_later_iteration_loop =
+    {$borrow_desc}borrow later borrow captured here by trait object, in later iteration of loop
+
+borrowck_bl_closure_capture_borrow_in_later_iteration_loop =
+    {$borrow_desc}borrow later borrow captured here by closure, in later iteration of loop
+
+borrowck_bl_call_used_borrow_in_later_iteration_loop =
+    {$borrow_desc}borrow later borrow used by call, in later iteration of loop
+
+borrowck_bl_borrow_later_stored_here =
+    {$borrow_desc}borrow later borrow later stored here
+
+borrowck_bl_used_borrow_in_later_iteration_loop =
+    {$borrow_desc}borrow later borrow used here, in later iteration of loop
+
+borrowck_drop_local_might_cause_borrow =
+    {$borrow_desc}borrow might be used here, when `{$local_name}` is dropped and runs the {$dtor_desc} for {$type_desc}
+
+borrowck_var_dropped_in_wrong_order =
+    values in a scope are dropped in the opposite order they are defined
+
+borrowck_temporary_access_to_borrow =
+    a temporary with access to the {$borrow_desc}borrow is created here ...
+
+borrowck_drop_temporary_might_cause_borrow_use = ... and the {$borrow_desc}borrow might be used here, when that temporary is dropped and runs the {$dtor_desc} for {$type_desc}
+
+borrowck_consider_add_semicolon =
+    consider adding semicolon after the expression so its temporaries are dropped sooner, before the local variables declared by the block are dropped
+
+borrowck_consider_move_expression_end_of_block =
+    for example, you could save the expression's value in a new local variable `x` and then make `x` be the expression at the end of the block
+
+borrowck_consider_forcing_temporary_drop_sooner =
+    the temporary is part of an expression at the end of a block;
+    consider forcing this temporary to be dropped sooner, before the block's local variables are dropped
+
+borrowck_perhaps_save_in_new_local_to_drop =
+    for example, you could save the expression's value in a new local variable `x` and then make `x` be the expression at the end of the block
+
+borrowck_outlive_constraint_need_borrow_for =
+    {$category}requires that {$desc} is borrowed for `{$region_name}`
+
+borrowck_outlive_constraint_need_borrow_lasts_for =
+    {$category}requires that {$borrow_desc} is borrowed for `{$region_name}`
+
+borrowck_consider_add_lifetime_bound =
+    consider adding the following bound: `{$fr_name}: {$outlived_fr_name}`
+
+borrowck_closure_cannot_invoke_again =
+    closure cannot be invoked more than once because it moves the variable `{$place}` out of its environment
+
+borrowck_closure_cannot_move_again =
+    closure cannot be moved more than once as it is not `Copy` due to moving the variable `{$place}` out of its environment
+
+borrowck_value_moved_here =
+    value {$partially_str}moved{$move_msg} here{$loop_message}
+
+borrowck_consider_borrow_content_of_type =
+    help: consider calling `.as_ref()` or `.as_mut()` to borrow the type's contents
+
+borrowck_function_takes_self_ownership =
+    this function takes ownership of the receiver `self`, which moves {$place_name}
+
+borrowck_moved_by_method_call =
+    {$place_name} {$partially_str}moved due to this method call{$loop_message}
+
+borrowck_moved_by_implicit_call =
+    {$place_name} {$partially_str}moved due to this implicit call to `.into_iter()`{$loop_message}
+
+borrowck_lhs_moved_by_operator_call =
+    calling this operator moves the left-hand side
+
+borrowck_moved_by_operator_use =
+    {$place_name} {$partially_str}moved due to usage in operator{$loop_message}
+
+borrowck_moved_fnonce_value =
+    this value implements `FnOnce`, which causes it to be moved when called
+
+borrowck_moved_by_call =
+    {$place_name} {$partially_str}moved due to this call{$loop_message}
+
+borrowck_type_not_impl_Copy =
+    {$move_prefix}move occurs because {$place_desc} has type `{$ty}`, which does not implement the `Copy` trait
+
+borrowck_outlive_constraint_need_borrow_lasts =
+    {$category}requires that `{$borrow_desc}` lasts for `{$region_name}`
+
+borrowck_require_mutable_binding =
+    calling `{$place}` requires mutable binding due to {$reason}
+
+borrowck_cannot_act =
+    cannot {$act}
+
+borrowck_expects_fnmut_not_fn =
+    change this to accept `FnMut` instead of `Fn`
+
+borrowck_expects_fn_not_fnmut =
+    expects `Fn` instead of `FnMut`
+
+borrowck_empty_label = {""}
+
+borrowck_in_this_closure =
+    in this closure
+
+borrowck_return_fnmut =
+    change this to return `FnMut` instead of `Fn`
+
+borrowck_name_this_region =
+    let's call this `{$rg_name}`
+
+borrowck_lifetime_appears_in_type =
+    lifetime `{$rg_name}` appears in the type {$type_name}
+
+borrowck_return_type_has_lifetime =
+    return type{$mir_description} `{$type_name}` contains a lifetime `{$rg_name}`
+
+borrowck_lifetime_appears_in_type_of =
+    lifetime `{$rg_name}` appears in the type of `{$upvar_name}`
+
+borrowck_return_type_is_type =
+    return type{$mir_description} is {$type_name}
+
+borrowck_yield_type_is_type =
+    yield type is {$type_name}
+
+borrowck_lifetime_appears_here_in_impl =
+    lifetime `{$rg_name}` appears in the `impl`'s {$location}
+
+borrowck_type_parameter_not_used_in_trait_type_alias =
+    type parameter `{$ty}` is part of concrete type but not used in parameter list for the `impl Trait` type alias
+
+borrowck_non_defining_opaque_type =
+    non-defining opaque type use in defining scope
+
+borrowck_lifetime_not_used_in_trait_type_alias =
+    lifetime `{$r}` is part of concrete type but not used in parameter list of the `impl Trait` type alias
+
+borrowck_used_non_generic_for_generic =
+    used non-generic {$descr} `{$arg}` for generic parameter
+
+borrowck_cannot_use_static_lifetime_here =
+    cannot use static lifetime; use a bound lifetime instead or remove the lifetime parameter from the opaque type
+
+borrowck_define_inline_constant_type =
+    defining inline constant type: {$type_name}
+
+borrowck_define_const_type =
+    defining constant type: {$type_name}
+
+borrowck_define_type =
+    defining type: {$type_name}
+
+borrowck_define_type_with_generator_substs =
+    defining type: {$type_name} with generator substs {$subsets}
+
+borrowck_define_type_with_closure_substs =
+    defining type: {$type_name} with closure substs {$subsets}
+
+borrowck_borrowed_temporary_value_dropped =
+    temporary value dropped while borrowed
+
+borrowck_thread_local_outlive_function =
+    thread-local variable borrowed past end of function
+
+borrowck_closure_borrowing_outlive_function =
+    {$closure_kind} may outlive the current function, but it borrows {$borrowed_path}, which is owned by the current function
+    .label = may outlive borrowed value {$borrowed_path}
+    .path_label = {$borrowed_path} is borrowed here
+
+borrowck_cannot_return_ref_to_local =
+    cannot {$return_kind} {$reference} {$local}
+    .label = {$return_kind}s a {$reference} data owned by the current function
+
+borrowck_path_does_not_live_long_enough =
+    {$path} does not live long enough
+
+borrowck_cannot_borrow_across_destructor =
+    borrow may still be in use when destructor runs
+
+borrowck_cannot_borrow_across_generator_yield =
+    borrow may still be in use when generator yields
+    .label = possible yield occurs here
+
+borrowck_cannot_mutate_in_immutable_section =
+    cannot {$action} {$immutable_place} in {$immutable_section}
+    .label = cannot {$action}
+    .immutable_value_label = value is immutable in {$immutable_section}
+
+borrowck_cannot_act_moved_value =
+    {$verb} of {$optional_adverb_for_moved}moved value{$moved_path}
+
+borrowck_cannot_move_out_of_interior_of_drop =
+    cannot move out of type `{$container_ty}`, which implements the `Drop` trait
+    .label = cannot move out of here
+
+borrowck_cannot_move_out_of =
+    cannot move out of {$move_from_desc}
+
+borrowck_cannot_assign =
+    cannot assign to {$desc}
+
+borrowck_cannot_assign_to_borrowed =
+    cannot assign to {$desc} because it is borrowed
+    .label = assignment to borrowed {$desc} occurs here
+    .borrow_here_label = borrow of {$desc} occurs here
+
+borrowck_cannot_reborrow_already_uniquely_borrowed =
+    cannot borrow {$desc_new}{$opt_via} as {$kind_new} because previous closure requires unique access
+    .label = {$second_borrow_desc}borrow occurs here{$opt_via}
+    .old_span_label = {$container_name} construction occurs here{$old_opt_via}
+    .optional_label = borrow from closure ends here
+
+borrowck_cannot_uniquely_borrow_by_one_closure =
+    closure requires unique access to {$desc_new} but {$noun_old} is already borrowed{$old_opt_via}
+    .label = {$container_name} construction occurs here{$opt_via}
+    .old_span_label = borrow occurs here{$old_opt_via}
+    .optional_label = borrow ends here
+
+borrowck_borrowed_data_escapes_closure =
+    borrowed data escapes outside of {$escapes_from}
+
+borrowck_cannot_uniquely_borrow_by_two_closures =
+    two closures require unique access to {$desc} at the same time
+    .label = borrow from first closure ends here
+    .new_span_label = second closure is constructed here
+
+borrowck_first_closure_constructed_here =
+    first closure is constructed here
+
+borrowck_closures_constructed_here =
+    closures are constructed here in different iterations of loop
+
+borrowck_cannot_use_when_mutably_borrowed =
+    cannot use {$desc} because it was mutably borrowed
+    .label = use of borrowed {$borrow_desc}
+    .borrow_span_label = borrow of {$borrow_desc} occurs here
+
+borrowck_cannot_move_when_borrowed =
+    cannot move out of {$desc} because it is borrowed
