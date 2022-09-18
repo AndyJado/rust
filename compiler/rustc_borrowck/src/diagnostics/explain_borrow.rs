@@ -71,7 +71,7 @@ impl<'tcx> BorrowExplanation<'tcx> {
             "first " => "first",
             "immutable " => "immutable",
             "mutable " => "mutable",
-            _ => "empty",
+            _ => "",
         };
         match *self {
             BorrowExplanation::UsedLater(later_use_kind, var_or_use_span, path_span) => {
