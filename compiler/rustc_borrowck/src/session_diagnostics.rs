@@ -579,22 +579,6 @@ pub(crate) struct InteriorDropMoveErr<'a> {
 }
 
 #[derive(SessionDiagnostic)]
-#[diag(borrowck::cannot_move_out_of, code = "E0507")]
-pub(crate) struct MovedOutErr<'a> {
-    pub move_from_desc: &'a str,
-    #[primary_span]
-    pub move_from_span: Span,
-}
-
-#[derive(SessionDiagnostic)]
-#[diag(borrowck::cannot_assign, code = "E0594")]
-pub(crate) struct AssignErr<'a> {
-    pub desc: &'a str,
-    #[primary_span]
-    pub span: Span,
-}
-
-#[derive(SessionDiagnostic)]
 #[diag(borrowck::cannot_assign_to_borrowed, code = "E0506")]
 pub(crate) struct AssignBorrowErr<'a> {
     pub desc: &'a str,
@@ -603,49 +587,6 @@ pub(crate) struct AssignBorrowErr<'a> {
     pub span: Span,
     #[label(borrowck::borrow_here_label)]
     pub borrow_span: Span,
-}
-
-#[derive(SessionDiagnostic)]
-#[diag(borrowck::cannot_reborrow_already_uniquely_borrowed, code = "E0501")]
-pub(crate) struct UniquelyBorrowReborrowErr<'a> {
-    pub container_name: &'a str,
-    pub desc_new: &'a str,
-    pub opt_via: &'a str,
-    pub kind_new: &'a str,
-    pub old_opt_via: &'a str,
-    pub second_borrow_desc: &'a str,
-    #[primary_span]
-    #[label]
-    pub new_loan_span: Span,
-    #[label(borrowck::old_span_label)]
-    pub old_loan_span: Span,
-    #[label(borrowck::optional_label)]
-    pub previous_end_span: Option<Span>,
-}
-
-#[derive(SessionDiagnostic)]
-#[diag(borrowck::cannot_uniquely_borrow_by_one_closure, code = "E0500")]
-pub(crate) struct ClosureUniquelyBorrowErr<'a> {
-    pub container_name: &'a str,
-    pub desc_new: &'a str,
-    pub opt_via: &'a str,
-    pub noun_old: &'a str,
-    pub old_opt_via: &'a str,
-    #[primary_span]
-    #[label]
-    pub new_loan_span: Span,
-    #[label(borrowck::old_span_label)]
-    pub old_loan_span: Span,
-    #[label(borrowck::optional_label)]
-    pub previous_end_span: Option<Span>,
-}
-
-#[derive(SessionDiagnostic)]
-#[diag(borrowck::borrowed_data_escapes_closure, code = "E0521")]
-pub(crate) struct BorrowEscapeClosure<'a> {
-    pub escapes_from: &'a str,
-    #[primary_span]
-    pub escape_span: Span,
 }
 
 #[derive(SessionDiagnostic)]
@@ -674,18 +615,6 @@ pub(crate) enum ClosureConstructLabel {
         #[primary_span]
         old_loan_span: Span,
     },
-}
-
-#[derive(SessionDiagnostic)]
-#[diag(borrowck::cannot_use_when_mutably_borrowed, code = "E0503")]
-pub(crate) struct UseMutBorrowErr<'a> {
-    pub desc: &'a str,
-    pub borrow_desc: &'a str,
-    #[primary_span]
-    #[label]
-    pub span: Span,
-    #[label(borrowck::borrow_span_label)]
-    pub borrow_span: Span,
 }
 
 #[derive(SessionDiagnostic)]
