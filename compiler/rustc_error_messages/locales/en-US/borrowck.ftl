@@ -86,16 +86,24 @@ borrowck_moved_var_cannot_copy =
 borrowck_used_here_by_closure =
     used here by closure
 
+borrow_desc =
+    {$borrow_desc ->
+        [mutable] mutable {""}
+        [immutable] immutable {""}
+        [first] first {""}
+        *[empty] {""}
+    }
+
 borrowck_drop_local_might_cause_borrow =
-    {$borrow_desc}borrow might be used here, when `{$local_name}` is dropped and runs the {$dtor_desc} for {$type_desc}
+    {borrow_desc}borrow might be used here, when `{$local_name}` is dropped and runs the {$dtor_desc} for {$type_desc}
 
 borrowck_var_dropped_in_wrong_order =
     values in a scope are dropped in the opposite order they are defined
 
 borrowck_temporary_access_to_borrow =
-    a temporary with access to the {$borrow_desc}borrow is created here ...
+    a temporary with access to the {borrow_desc}borrow is created here ...
 
-borrowck_drop_temporary_might_cause_borrow_use = ... and the {$borrow_desc}borrow might be used here, when that temporary is dropped and runs the {$dtor_desc} for {$type_desc}
+borrowck_drop_temporary_might_cause_borrow_use = ... and the {borrow_desc}borrow might be used here, when that temporary is dropped and runs the {$dtor_desc} for {$type_desc}
 
 borrowck_consider_add_semicolon =
     consider adding semicolon after the expression so its temporaries are dropped sooner, before the local variables declared by the block are dropped

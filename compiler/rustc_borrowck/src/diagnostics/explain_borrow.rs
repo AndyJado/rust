@@ -67,6 +67,12 @@ impl<'tcx> BorrowExplanation<'tcx> {
         borrow_span: Option<Span>,
         multiple_borrow_span: Option<(Span, Span)>,
     ) {
+        let br_desc = match borrow_desc {
+            "first " => "first",
+            "immutable " => "immutable",
+            "mutable " => "mutable",
+            _ => "empty",
+        };
         match *self {
             BorrowExplanation::UsedLater(later_use_kind, var_or_use_span, path_span) => {
                 let message = match later_use_kind {
@@ -163,7 +169,7 @@ impl<'tcx> BorrowExplanation<'tcx> {
                 match local_names[dropped_local] {
                     Some(local_name) if !local_decl.from_compiler_desugaring() => {
                         err.subdiagnostic(UsedLaterDropped::UsedHere {
-                            borrow_desc,
+                            borrow_desc: br_desc,
                             local_name,
                             type_desc: &type_desc,
                             dtor_desc,
@@ -175,11 +181,11 @@ impl<'tcx> BorrowExplanation<'tcx> {
                     }
                     _ => {
                         err.subdiagnostic(UsedLaterDropped::TemporaryCreatedHere {
-                            borrow_desc,
+                            borrow_desc: br_desc,
                             span: local_decl.source_info.span,
                         });
                         err.subdiagnostic(UsedLaterDropped::MightUsedHere {
-                            borrow_desc,
+                            borrow_desc: br_desc,
                             type_desc: &type_desc,
                             dtor_desc,
                             span: body.source_info(drop_loc).span,
