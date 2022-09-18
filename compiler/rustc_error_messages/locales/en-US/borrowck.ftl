@@ -192,14 +192,23 @@ borrowck_name_this_region =
 borrowck_lifetime_appears_in_type =
     lifetime `{$rg_name}` appears in the type {$type_name}
 
+borrowck_mir_description =
+    {$mir_description ->
+        [Block] {""} of async block
+        [Closure] {""} of async closure
+        [Fn] {""} of async function
+        [Gen] {""} of generator
+        *[None] {""} of closure
+    }
+
 borrowck_return_type_has_lifetime =
-    return type{$mir_description} `{$type_name}` contains a lifetime `{$rg_name}`
+    return type{borrowck_mir_description} `{$type_name}` contains a lifetime `{$rg_name}`
 
 borrowck_lifetime_appears_in_type_of =
     lifetime `{$rg_name}` appears in the type of `{$upvar_name}`
 
 borrowck_return_type_is_type =
-    return type{$mir_description} is {$type_name}
+    return type{borrowck_mir_description} is {$type_name}
 
 borrowck_yield_type_is_type =
     yield type is {$type_name}

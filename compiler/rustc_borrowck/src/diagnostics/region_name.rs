@@ -715,8 +715,8 @@ impl<'tcx> MirBorrowckCtxt<'_, 'tcx> {
                 };
                 let mir_description = match hir.body(body).generator_kind {
                     Some(hir::GeneratorKind::Async(gen)) => match gen {
-                        hir::AsyncGeneratorKind::Block => " of async block",
-                        hir::AsyncGeneratorKind::Closure => " of async closure",
+                        hir::AsyncGeneratorKind::Block => "Block",
+                        hir::AsyncGeneratorKind::Closure => "Closure",
                         hir::AsyncGeneratorKind::Fn => {
                             let parent_item =
                                 hir.get_by_def_id(hir.get_parent_item(mir_hir_id).def_id);
@@ -728,11 +728,11 @@ impl<'tcx> MirBorrowckCtxt<'_, 'tcx> {
                             if let hir::FnRetTy::Return(ret) = output {
                                 hir_ty = Some(self.get_future_inner_return_ty(*ret));
                             }
-                            " of async function"
+                            "Fn"
                         }
                     },
-                    Some(hir::GeneratorKind::Gen) => " of generator",
-                    None => " of closure",
+                    Some(hir::GeneratorKind::Gen) => "Gen",
+                    None => "None",
                 };
                 (span, mir_description, hir_ty)
             }
