@@ -86,24 +86,31 @@ borrowck_moved_var_cannot_copy =
 borrowck_used_here_by_closure =
     used here by closure
 
--borrow_desc =
+borrowck_drop_local_might_cause_borrow =
     {$borrow_desc ->
         [mutable] mutable {""}
         [immutable] immutable {""}
         [first] first {""}
         *[other] {""}
-    }
-
-borrowck_drop_local_might_cause_borrow =
-    {-borrow_desc}borrow might be used here, when `{$local_name}` is dropped and runs the {$dtor_desc} for {$type_desc}
+    }borrow might be used here, when `{$local_name}` is dropped and runs the {$dtor_desc} for {$type_desc}
 
 borrowck_var_dropped_in_wrong_order =
     values in a scope are dropped in the opposite order they are defined
 
 borrowck_temporary_access_to_borrow =
-    a temporary with access to the {-borrow_desc}borrow is created here ...
+    a temporary with access to the {$borrow_desc ->
+        [mutable] mutable {""}
+        [immutable] immutable {""}
+        [first] first {""}
+        *[other] {""}
+    }borrow is created here ...
 
-borrowck_drop_temporary_might_cause_borrow_use = ... and the {-borrow_desc}borrow might be used here, when that temporary is dropped and runs the {$dtor_desc} for {$type_desc}
+borrowck_drop_temporary_might_cause_borrow_use = ... and the {$borrow_desc ->
+        [mutable] mutable {""}
+        [immutable] immutable {""}
+        [first] first {""}
+        *[other] {""}
+    }borrow might be used here, when that temporary is dropped and runs the {$dtor_desc} for {$type_desc}
 
 borrowck_consider_add_semicolon =
     consider adding semicolon after the expression so its temporaries are dropped sooner, before the local variables declared by the block are dropped
@@ -192,24 +199,28 @@ borrowck_name_this_region =
 borrowck_lifetime_appears_in_type =
     lifetime `{$rg_name}` appears in the type {$type_name}
 
--mir_description =
-    {$mir_description ->
+borrowck_return_type_has_lifetime =
+    return type{$mir_description ->
         [Block] {""} of async block
         [Closure] {""} of async closure
         [Fn] {""} of async function
         [Gen] {""} of generator
         [None] {""} of closure
         *[other] {""}
-    }
-
-borrowck_return_type_has_lifetime =
-    return type{-mir_description} `{$type_name}` contains a lifetime `{$rg_name}`
+    } `{$type_name}` contains a lifetime `{$rg_name}`
 
 borrowck_lifetime_appears_in_type_of =
     lifetime `{$rg_name}` appears in the type of `{$upvar_name}`
 
 borrowck_return_type_is_type =
-    return type{-mir_description} is {$type_name}
+    return type{$mir_description ->
+        [Block] {""} of async block
+        [Closure] {""} of async closure
+        [Fn] {""} of async function
+        [Gen] {""} of generator
+        [None] {""} of closure
+        *[other] {""}
+    } is {$type_name}
 
 borrowck_yield_type_is_type =
     yield type is {$type_name}
