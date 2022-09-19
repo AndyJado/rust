@@ -15,7 +15,7 @@ use rustc_middle::ty::{self, RegionVid, TyCtxt};
 use rustc_span::symbol::{kw, Symbol};
 use rustc_span::{sym, DesugaringKind, Span};
 
-use crate::region_infer::BlameConstraint;
+use crate::region_infer::{BlameConstraint, ExtraConstraintInfo};
 use crate::session_diagnostics::{BorrowUsedHere, UsedLaterDropped};
 use crate::{
     borrow_set::BorrowData, nll::ConstraintDescription, region_infer::Cause, MirBorrowckCtxt,
