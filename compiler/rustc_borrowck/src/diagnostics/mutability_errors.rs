@@ -821,8 +821,8 @@ impl<'a, 'tcx> MirBorrowckCtxt<'a, 'tcx> {
         if let Some((span, closure_kind_origin)) =
             &tables.closure_kind_origins().get(closure_hir_id)
         {
+            let upvar = ty::place_to_string_for_capture(tcx, closure_kind_origin);
             let reason = if let PlaceBase::Upvar(upvar_id) = closure_kind_origin.base {
-                let upvar = ty::place_to_string_for_capture(tcx, closure_kind_origin);
                 let root_hir_id = upvar_id.var_path.hir_id;
                 // we have an origin for this closure kind starting at this root variable so it's safe to unwrap here
                 let captured_places =
@@ -849,10 +849,10 @@ impl<'a, 'tcx> MirBorrowckCtxt<'a, 'tcx> {
                             ty::UpvarCapture::ByRef(
                                 ty::BorrowKind::MutBorrow | ty::BorrowKind::UniqueImmBorrow,
                             ) => {
-                                capture_reason = format!("mutable borrow of `{upvar}`");
+                                capture_reason = format!("borrow");
                             }
                             ty::UpvarCapture::ByValue => {
-                                capture_reason = format!("possible mutation of `{upvar}`");
+                                capture_reason = format!("mutation");
                             }
                             _ => bug!("upvar `{upvar}` borrowed, but not mutably"),
                         }
@@ -867,8 +867,12 @@ impl<'a, 'tcx> MirBorrowckCtxt<'a, 'tcx> {
                 bug!("not an upvar")
             };
             let place = self.describe_place(the_place_err).unwrap();
-            let sub_label = ShowMutatingUpvar::RequireMutableBinding { place, reason, span: *span };
-            err.subdiagnostic(sub_label);
+            err.subdiagnostic(ShowMutatingUpvar::RequireMutableBinding {
+                upvar,
+                place,
+                reason,
+                span: *span,
+            });
         }
     }
 

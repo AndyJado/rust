@@ -195,7 +195,10 @@ borrowck_outlive_constraint_need_borrow_lasts =
     {$category}requires that `{$borrow_desc}` lasts for `{$region_name}`
 
 borrowck_require_mutable_binding =
-    calling `{$place}` requires mutable binding due to {$reason}
+    calling `{$place}` requires mutable binding due to {$reason ->
+        [borrow] mutable borrow of `{$upvar}`
+        *[mutation] possible mutation of `{$upvar}`
+    }
 
 borrowck_cannot_act =
     cannot {$act}

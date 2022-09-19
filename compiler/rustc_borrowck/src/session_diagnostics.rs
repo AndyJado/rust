@@ -259,6 +259,7 @@ pub(crate) enum ClosureCannotAgain {
 pub(crate) enum ShowMutatingUpvar {
     #[label(borrowck::require_mutable_binding)]
     RequireMutableBinding {
+        upvar: String,
         place: String,
         reason: String,
         #[primary_span]
