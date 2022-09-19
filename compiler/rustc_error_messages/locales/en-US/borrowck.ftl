@@ -323,7 +323,10 @@ borrowck_cannot_move_out_of =
     cannot move out of {$move_from_desc}
 
 borrowck_cannot_assign =
-    cannot assign to {$desc}
+    cannot assign to {$desc ->
+        [value] value
+        *[other] {$desc}
+    }
 
 borrowck_cannot_assign_to_borrowed =
     cannot assign to {$desc} because it is borrowed
@@ -362,4 +365,7 @@ borrowck_cannot_use_when_mutably_borrowed =
     .borrow_span_label = borrow of {$borrow_desc} occurs here
 
 borrowck_cannot_move_when_borrowed =
-    cannot move out of {$desc} because it is borrowed
+    cannot move out of {$desc ->
+        [value] value
+        *[other] {$desc}
+    } because it is borrowed
