@@ -168,7 +168,10 @@ borrowck_moved_by_call =
     {$place_name} {$partially_str}moved due to this call{$loop_message}
 
 borrowck_type_not_impl_Copy =
-    {$move_prefix}move occurs because {$place_desc} has type `{$ty}`, which does not implement the `Copy` trait
+    {$move_prefix}move occurs because {$place_desc ->
+        [value] value
+        *[other] {$place_desc}
+    } has type `{$ty}`, which does not implement the `Copy` trait
 
 borrowck_outlive_constraint_need_borrow_lasts =
     {$category}requires that `{$borrow_desc}` lasts for `{$region_name}`
