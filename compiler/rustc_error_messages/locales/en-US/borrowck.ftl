@@ -307,49 +307,29 @@ borrowck_cannot_borrow_across_generator_yield =
     borrow may still be in use when generator yields
     .label = possible yield occurs here
 
-borrowck_cannot_mutate_in_immutable_section =
-    cannot {$action} {$immutable_place} in {$immutable_section}
-    .label = cannot {$action}
-    .immutable_value_label = value is immutable in {$immutable_section}
-
-borrowck_cannot_act_moved_value =
-    {$verb} of {$optional_adverb_for_moved}moved value{$moved_path}
-
 borrowck_cannot_move_out_of_interior_of_drop =
     cannot move out of type `{$container_ty}`, which implements the `Drop` trait
     .label = cannot move out of here
 
-borrowck_cannot_move_out_of =
-    cannot move out of {$move_from_desc}
-
-borrowck_cannot_assign =
+borrowck_cannot_assign_to_borrowed =
     cannot assign to {$desc ->
         [value] value
         *[other] {$desc}
-    }
-
-borrowck_cannot_assign_to_borrowed =
-    cannot assign to {$desc} because it is borrowed
-    .label = assignment to borrowed {$desc} occurs here
-    .borrow_here_label = borrow of {$desc} occurs here
-
-borrowck_cannot_reborrow_already_uniquely_borrowed =
-    cannot borrow {$desc_new}{$opt_via} as {$kind_new} because previous closure requires unique access
-    .label = {$second_borrow_desc}borrow occurs here{$opt_via}
-    .old_span_label = {$container_name} construction occurs here{$old_opt_via}
-    .optional_label = borrow from closure ends here
-
-borrowck_cannot_uniquely_borrow_by_one_closure =
-    closure requires unique access to {$desc_new} but {$noun_old} is already borrowed{$old_opt_via}
-    .label = {$container_name} construction occurs here{$opt_via}
-    .old_span_label = borrow occurs here{$old_opt_via}
-    .optional_label = borrow ends here
-
-borrowck_borrowed_data_escapes_closure =
-    borrowed data escapes outside of {$escapes_from}
+    } because it is borrowed
+    .label = assignment to borrowed {$desc ->
+        [value] value
+        *[other] {$desc}
+    } occurs here
+    .borrow_here_label = borrow of {$desc ->
+        [value] value
+        *[other] {$desc}
+    } occurs here
 
 borrowck_cannot_uniquely_borrow_by_two_closures =
-    two closures require unique access to {$desc} at the same time
+    two closures require unique access to {$desc ->
+        [value] value
+        *[other] {$desc}
+    } at the same time
     .label = borrow from first closure ends here
     .new_span_label = second closure is constructed here
 
@@ -360,9 +340,18 @@ borrowck_closures_constructed_here =
     closures are constructed here in different iterations of loop
 
 borrowck_cannot_use_when_mutably_borrowed =
-    cannot use {$desc} because it was mutably borrowed
-    .label = use of borrowed {$borrow_desc}
-    .borrow_span_label = borrow of {$borrow_desc} occurs here
+    cannot use {$desc ->
+        [value] value
+        *[other] {$desc}
+    } because it was mutably borrowed
+    .label = use of borrowed {$borrow_desc ->
+        [value] value
+        *[other] {$borrow_desc}
+    }
+    .borrow_span_label = borrow of {$borrow_desc ->
+        [value] value
+        *[other] {$borrow_desc}
+    } occurs here
 
 borrowck_cannot_move_when_borrowed =
     cannot move out of {$desc ->

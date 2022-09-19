@@ -548,29 +548,6 @@ pub(crate) struct BorrowAcrossGeneratorYield {
 }
 
 #[derive(SessionDiagnostic)]
-#[diag(borrowck::cannot_mutate_in_immutable_section, code = "E0510")]
-pub(crate) struct MutateInImmute<'a> {
-    pub action: &'a str,
-    pub immutable_place: &'a str,
-    pub immutable_section: &'a str,
-    #[primary_span]
-    #[label]
-    pub mutate_span: Span,
-    #[label(borrowck::immutable_value_label)]
-    pub immutable_span: Span,
-}
-
-#[derive(SessionDiagnostic)]
-#[diag(borrowck::cannot_act_moved_value, code = "E0382")]
-pub(crate) struct ActMovedValueErr<'a> {
-    pub verb: &'a str,
-    pub optional_adverb_for_moved: &'a str,
-    pub moved_path: String,
-    #[primary_span]
-    pub use_span: Span,
-}
-
-#[derive(SessionDiagnostic)]
 #[diag(borrowck::cannot_move_out_of_interior_of_drop, code = "E0509")]
 pub(crate) struct InteriorDropMoveErr<'a> {
     pub container_ty: Ty<'a>,
@@ -616,6 +593,18 @@ pub(crate) enum ClosureConstructLabel {
         #[primary_span]
         old_loan_span: Span,
     },
+}
+
+#[derive(SessionDiagnostic)]
+#[diag(borrowck::cannot_use_when_mutably_borrowed, code = "E0503")]
+pub(crate) struct UseMutBorrowErr<'a> {
+    pub desc: &'a str,
+    pub borrow_desc: &'a str,
+    #[primary_span]
+    #[label]
+    pub span: Span,
+    #[label(borrowck::borrow_span_label)]
+    pub borrow_span: Span,
 }
 
 #[derive(SessionDiagnostic)]

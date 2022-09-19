@@ -7,6 +7,7 @@ use rustc_span::Span;
 use crate::session_diagnostics::{
     AssignBorrowErr, BorrowAcrossDestructor, BorrowAcrossGeneratorYield, ClosureConstructLabel,
     InteriorDropMoveErr, MoveBorrowedErr, PathShortLive, TwoClosuresUniquelyBorrowErr,
+    UseMutBorrowErr,
 };
 
 impl<'cx, 'tcx> crate::MirBorrowckCtxt<'cx, 'tcx> {
@@ -25,17 +26,7 @@ impl<'cx, 'tcx> crate::MirBorrowckCtxt<'cx, 'tcx> {
         borrow_span: Span,
         borrow_desc: &str,
     ) -> DiagnosticBuilder<'cx, ErrorGuaranteed> {
-        let mut err = struct_span_err!(
-            self,
-            span,
-            E0503,
-            "cannot use {} because it was mutably borrowed",
-            desc,
-        );
-
-        err.span_label(borrow_span, format!("borrow of {} occurs here", borrow_desc));
-        err.span_label(span, format!("use of borrowed {}", borrow_desc));
-        err
+        self.infcx.tcx.sess.create_err(UseMutBorrowErr { desc, borrow_desc, span, borrow_span })
     }
 
     pub(crate) fn cannot_mutably_borrow_multiply(
