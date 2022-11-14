@@ -401,7 +401,7 @@ impl<'a, 'tcx> MirBorrowckCtxt<'a, 'tcx> {
         };
         if let Some(use_spans) = use_spans {
             self.explain_captures(
-                &mut err, span, span, use_spans, move_place, "", "", "", false, true,
+                &mut err, span, span, use_spans, move_place, false, false, false, false, true,
             );
         }
         err
@@ -426,13 +426,12 @@ impl<'a, 'tcx> MirBorrowckCtxt<'a, 'tcx> {
                         None => "value".to_string(),
                     };
 
-                    self.note_type_does_not_implement_copy(
-                        err,
-                        &place_desc,
-                        place_ty,
-                        Some(span),
-                        "",
-                    );
+                    err.subdiagnostic(crate::session_diagnostics::TypeNoCopy::Label {
+                        is_partial_move: false,
+                        ty: place_ty,
+                        place: &place_desc,
+                        span,
+                    });
                 } else {
                     binds_to.sort();
                     binds_to.dedup();
@@ -454,9 +453,19 @@ impl<'a, 'tcx> MirBorrowckCtxt<'a, 'tcx> {
                     Some(desc) => format!("`{desc}`"),
                     None => "value".to_string(),
                 };
-                self.note_type_does_not_implement_copy(err, &place_desc, place_ty, Some(span), "");
+                err.subdiagnostic(crate::session_diagnostics::TypeNoCopy::Label {
+                    is_partial_move: false,
+                    ty: place_ty,
+                    place: &place_desc,
+                    span,
+                });
 
-                use_spans.args_span_label(err, format!("move out of {place_desc} occurs here"));
+                use_spans.args_subdiag(err, |args_span| {
+                    crate::session_diagnostics::CaptureArgLabel::MoveOutPlace {
+                        place: place_desc,
+                        args_span,
+                    }
+                });
             }
         }
     }
@@ -509,13 +518,13 @@ impl<'a, 'tcx> MirBorrowckCtxt<'a, 'tcx> {
             }
 
             if binds_to.len() == 1 {
-                self.note_type_does_not_implement_copy(
-                    err,
-                    &format!("`{}`", self.local_names[*local].unwrap()),
-                    bind_to.ty,
-                    Some(binding_span),
-                    "",
-                );
+                let place_desc = &format!("`{}`", self.local_names[*local].unwrap());
+                err.subdiagnostic(crate::session_diagnostics::TypeNoCopy::Label {
+                    is_partial_move: false,
+                    ty: bind_to.ty,
+                    place: &place_desc,
+                    span: binding_span,
+                });
             }
         }
 
