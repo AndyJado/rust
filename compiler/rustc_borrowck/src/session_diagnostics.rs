@@ -258,6 +258,30 @@ pub(crate) enum CaptureVarCause {
         #[primary_span]
         var_span: Span,
     },
+    #[label(borrowck_var_first_borrow_by_use_place_in_generator)]
+    FirstBorrowUsePlaceGenerator {
+        place: String,
+        #[primary_span]
+        var_span: Span,
+    },
+    #[label(borrowck_var_first_borrow_by_use_place_in_closure)]
+    FirstBorrowUsePlaceClosure {
+        place: String,
+        #[primary_span]
+        var_span: Span,
+    },
+    #[label(borrowck_var_second_borrow_by_use_place_in_generator)]
+    SecondBorrowUsePlaceGenerator {
+        place: String,
+        #[primary_span]
+        var_span: Span,
+    },
+    #[label(borrowck_var_second_borrow_by_use_place_in_closure)]
+    SecondBorrowUsePlaceClosure {
+        place: String,
+        #[primary_span]
+        var_span: Span,
+    },
     #[label(borrowck_var_mutable_borrow_by_use_place_in_closure)]
     MutableBorrowUsePlaceClosure {
         place: String,

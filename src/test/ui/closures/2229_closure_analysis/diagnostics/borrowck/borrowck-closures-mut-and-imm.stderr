@@ -2,7 +2,7 @@ error[E0502]: cannot borrow `p` as mutable because it is also borrowed as immuta
   --> $DIR/borrowck-closures-mut-and-imm.rs:17:14
    |
 LL |     let c2 = || p.y * 5;
-   |              -- --- first borrow occurs due to use of `p.y` in closure
+   |              -- --- first borrow occurs due to use of `p` in closure
    |              |
    |              immutable borrow occurs here
 LL |     let c1 = || {

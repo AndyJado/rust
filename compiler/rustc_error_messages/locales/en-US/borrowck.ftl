@@ -122,6 +122,18 @@ borrowck_var_move_by_use_in_generator =
 borrowck_var_move_by_use_in_closure =
     move occurs due to use in closure
 
+borrowck_var_first_borrow_by_use_place_in_generator =
+    first borrow occurs due to use of {$place} in generator
+
+borrowck_var_first_borrow_by_use_place_in_closure =
+    first borrow occurs due to use of {$place} in closure
+
+borrowck_var_second_borrow_by_use_place_in_generator =
+    second borrow occurs due to use of {$place} in generator
+
+borrowck_var_second_borrow_by_use_place_in_closure =
+    second borrow occurs due to use of {$place} in closure
+
 borrowck_var_mutable_borrow_by_use_place_in_closure =
     mutable borrow occurs due to use of {$place} in closure
 

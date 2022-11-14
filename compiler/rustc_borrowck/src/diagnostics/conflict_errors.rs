@@ -925,27 +925,24 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
                 }
             });
         } else {
-            let borrow_place = &issued_borrow.borrowed_place;
-            let borrow_place_desc = self.describe_any_place(borrow_place.as_ref());
-            issued_spans.var_span_label(
-                &mut err,
-                format!(
-                    "first borrow occurs due to use of {}{}",
-                    borrow_place_desc,
-                    issued_spans.describe(),
-                ),
-                issued_borrow.kind.describe_mutability(),
-            );
+            //FIXME: (blessed casue) I suppose this demands eager translate?
+            issued_spans.var_subdiag(&mut err, Some(issued_borrow.kind), |kind, var_span| {
+                use crate::session_diagnostics::CaptureVarCause::*;
+                let borrow_place = &issued_borrow.borrowed_place;
+                let borrow_place_desc = self.describe_any_place(borrow_place.as_ref());
+                match kind {
+                    Some(_) => FirstBorrowUsePlaceGenerator { place: borrow_place_desc, var_span },
+                    None => FirstBorrowUsePlaceClosure { place: borrow_place_desc, var_span },
+                }
+            });
 
-            borrow_spans.var_span_label(
-                &mut err,
-                format!(
-                    "second borrow occurs due to use of {}{}",
-                    desc_place,
-                    borrow_spans.describe(),
-                ),
-                gen_borrow_kind.describe_mutability(),
-            );
+            borrow_spans.var_subdiag(&mut err, Some(gen_borrow_kind), |kind, var_span| {
+                use crate::session_diagnostics::CaptureVarCause::*;
+                match kind {
+                    Some(_) => SecondBorrowUsePlaceGenerator { place: desc_place, var_span },
+                    None => SecondBorrowUsePlaceClosure { place: desc_place, var_span },
+                }
+            });
         }
 
         if union_type_name != "" {
