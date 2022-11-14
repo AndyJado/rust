@@ -226,6 +226,44 @@ pub(crate) enum CaptureVarCause {
         #[primary_span]
         var_span: Span,
     },
+    #[label(borrowck_var_borrows_by_use_place_in_generator)]
+    BorrowsUsePlaceGenerator {
+        place: String,
+        #[primary_span]
+        var_span: Span,
+    },
+    #[label(borrowck_var_borrows_by_use_place_in_closure)]
+    BorrowsUsePlaceClosure {
+        place: String,
+        #[primary_span]
+        var_span: Span,
+    },
+    #[label(borrowck_var_borrow_by_use_in_generator)]
+    BorrowUseInGenerator {
+        #[primary_span]
+        var_span: Span,
+    },
+    #[label(borrowck_var_borrow_by_use_in_closure)]
+    BorrowUseInClosure {
+        #[primary_span]
+        var_span: Span,
+    },
+    #[label(borrowck_var_move_by_use_in_generator)]
+    MoveUseInGenerator {
+        #[primary_span]
+        var_span: Span,
+    },
+    #[label(borrowck_var_move_by_use_in_closure)]
+    MoveUseInClosure {
+        #[primary_span]
+        var_span: Span,
+    },
+    #[label(borrowck_var_mutable_borrow_by_use_place_in_closure)]
+    MutableBorrowUsePlaceClosure {
+        place: String,
+        #[primary_span]
+        var_span: Span,
+    },
 }
 
 #[derive(Diagnostic)]

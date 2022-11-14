@@ -651,7 +651,7 @@ impl UseSpans<'_> {
         self,
         err: &mut Diagnostic,
         kind: Option<rustc_middle::mir::BorrowKind>,
-        f: impl Fn(Option<GeneratorKind>, Span) -> crate::session_diagnostics::CaptureVarCause,
+        f: impl FnOnce(Option<GeneratorKind>, Span) -> crate::session_diagnostics::CaptureVarCause,
     ) {
         use crate::session_diagnostics::CaptureVarKind::*;
         if let UseSpans::ClosureUse { generator_kind, capture_kind_span, path_span, .. } = self {

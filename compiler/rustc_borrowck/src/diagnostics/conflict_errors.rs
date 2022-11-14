@@ -677,11 +677,13 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
 
         borrow_spans.var_path_only_subdiag(&mut err, crate::InitializationRequiringAction::Borrow);
 
-        move_spans.var_span_label(
-            &mut err,
-            format!("move occurs due to use{}", move_spans.describe()),
-            "moved",
-        );
+        move_spans.var_subdiag(&mut err, None, |kind, var_span| {
+            use crate::session_diagnostics::CaptureVarCause::*;
+            match kind {
+                Some(_) => MoveUseInGenerator { var_span },
+                None => MoveUseInClosure { var_span },
+            }
+        });
 
         self.explain_why_borrow_contains_point(location, borrow, None)
             .add_explanation_to_diagnostic(
@@ -832,16 +834,17 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
                         immutable_section_description,
                         "mutably borrow",
                     );
-                    borrow_spans.var_span_label(
+                    borrow_spans.var_subdiag(
                         &mut err,
-                        format!(
-                            "borrow occurs due to use of {}{}",
-                            desc_place,
-                            borrow_spans.describe(),
-                        ),
-                        "immutable",
+                        Some(BorrowKind::Unique),
+                        |kind, var_span| {
+                            use crate::session_diagnostics::CaptureVarCause::*;
+                            match kind {
+                                Some(_) => BorrowUsePlaceGenerator { place: desc_place, var_span },
+                                None => BorrowUsePlaceClosure { place: desc_place, var_span },
+                            }
+                        },
                     );
-
                     return err;
                 } else {
                     first_borrow_desc = "immutable ";
@@ -914,11 +917,13 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
         };
 
         if issued_spans == borrow_spans {
-            borrow_spans.var_span_label(
-                &mut err,
-                format!("borrows occur due to use of {}{}", desc_place, borrow_spans.describe(),),
-                gen_borrow_kind.describe_mutability(),
-            );
+            borrow_spans.var_subdiag(&mut err, Some(gen_borrow_kind), |kind, var_span| {
+                use crate::session_diagnostics::CaptureVarCause::*;
+                match kind {
+                    Some(_) => BorrowsUsePlaceGenerator { place: desc_place, var_span },
+                    None => BorrowsUsePlaceClosure { place: desc_place, var_span },
+                }
+            });
         } else {
             let borrow_place = &issued_borrow.borrowed_place;
             let borrow_place_desc = self.describe_any_place(borrow_place.as_ref());
@@ -2056,11 +2061,14 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
                     section,
                     "assign",
                 );
-                loan_spans.var_span_label(
-                    &mut err,
-                    format!("borrow occurs due to use{}", loan_spans.describe()),
-                    loan.kind.describe_mutability(),
-                );
+
+                loan_spans.var_subdiag(&mut err, Some(loan.kind), |kind, var_span| {
+                    use crate::session_diagnostics::CaptureVarCause::*;
+                    match kind {
+                        Some(_) => BorrowUseInGenerator { var_span },
+                        None => BorrowUseInClosure { var_span },
+                    }
+                });
 
                 self.buffer_error(err);
 
@@ -2070,11 +2078,13 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
 
         let mut err = self.cannot_assign_to_borrowed(span, loan_span, &descr_place);
 
-        loan_spans.var_span_label(
-            &mut err,
-            format!("borrow occurs due to use{}", loan_spans.describe()),
-            loan.kind.describe_mutability(),
-        );
+        loan_spans.var_subdiag(&mut err, Some(loan.kind), |kind, var_span| {
+            use crate::session_diagnostics::CaptureVarCause::*;
+            match kind {
+                Some(_) => BorrowUseInGenerator { var_span },
+                None => BorrowUseInClosure { var_span },
+            }
+        });
 
         self.explain_why_borrow_contains_point(location, loan, None).add_explanation_to_diagnostic(
             self.infcx.tcx,

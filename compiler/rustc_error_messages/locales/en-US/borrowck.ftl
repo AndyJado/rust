@@ -59,18 +59,6 @@ borrowck_returned_lifetime_short =
 borrowck_used_impl_require_static =
     the used `impl` has a `'static` requirement
 
-borrowck_capture_kind_label =
-    capture is {$kind_desc} because of use here
-
-borrowck_var_borrow_by_use_place_in_generator =
-    borrow occurs due to use of {$place} in closure in generator
-
-borrowck_var_borrow_by_use_place_in_closure =
-    borrow occurs due to use of {$place} in closure
-
-borrowck_var_borrow_by_use_place =
-    borrow occurs due to use of {$place}
-
 borrowck_borrow_due_to_use_generator =
     borrow occurs due to use in generator
 
@@ -104,11 +92,38 @@ borrowck_capture_mut =
 borrowck_capture_move =
     capture is moved because of use here
 
+borrowck_var_borrow_by_use_place_in_generator =
+    borrow occurs due to use of {$place} in generator
+
+borrowck_var_borrow_by_use_place_in_closure =
+    borrow occurs due to use of {$place} in closure
+
+borrowck_var_borrows_by_use_place_in_generator =
+    borrows occur due to use of {$place} in generator
+
+borrowck_var_borrows_by_use_place_in_closure =
+    borrows occur due to use of {$place} in closure
+
+borrowck_var_borrow_by_use_in_generator =
+    borrow occurs due to use in generator
+
+borrowck_var_borrow_by_use_in_closure =
+    borrow occurs due to use in closure
+
 borrowck_var_move_by_use_place_in_generator =
     move occurs due to use of {$place} in generator
 
 borrowck_var_move_by_use_place_in_closure =
     move occurs due to use of {$place} in closure
+
+borrowck_var_move_by_use_in_generator =
+    move occurs due to use in generator
+
+borrowck_var_move_by_use_in_closure =
+    move occurs due to use in closure
+
+borrowck_var_mutable_borrow_by_use_place_in_closure =
+    mutable borrow occurs due to use of {$place} in closure
 
 borrowck_cannot_move_when_borrowed =
     cannot move out of {$place ->
