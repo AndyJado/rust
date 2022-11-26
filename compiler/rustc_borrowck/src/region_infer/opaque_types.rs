@@ -12,6 +12,8 @@ use rustc_span::Span;
 use rustc_trait_selection::traits::error_reporting::TypeErrCtxtExt as _;
 use rustc_trait_selection::traits::ObligationCtxt;
 
+use crate::session_diagnostics::{OpaqueTyDefineErrCause, OpaqueTypeNotDefine};
+
 use super::RegionInferenceContext;
 
 impl<'tcx> RegionInferenceContext<'tcx> {
@@ -367,15 +369,12 @@ fn check_opaque_type_parameter_valid(
         let arg_is_param = match arg.unpack() {
             GenericArgKind::Type(ty) => matches!(ty.kind(), ty::Param(_)),
             GenericArgKind::Lifetime(lt) if lt.is_static() => {
-                tcx.sess
-                    .struct_span_err(span, "non-defining opaque type use in defining scope")
-                    .span_label(
-                        tcx.def_span(opaque_generics.param_at(i, tcx).def_id),
-                        "cannot use static lifetime; use a bound lifetime \
-                                    instead or remove the lifetime parameter from the \
-                                    opaque type",
-                    )
-                    .emit();
+                tcx.sess.emit_err(OpaqueTypeNotDefine {
+                    cause: OpaqueTyDefineErrCause::UsedStaticLifetime {
+                        span: tcx.def_span(opaque_generics.param_at(i, tcx).def_id),
+                    },
+                    span,
+                });
                 return false;
             }
             GenericArgKind::Lifetime(lt) => {
@@ -389,17 +388,14 @@ fn check_opaque_type_parameter_valid(
         } else {
             // Prevent `fn foo() -> Foo<u32>` from being defining.
             let opaque_param = opaque_generics.param_at(i, tcx);
-            tcx.sess
-                .struct_span_err(span, "non-defining opaque type use in defining scope")
-                .span_note(
-                    tcx.def_span(opaque_param.def_id),
-                    &format!(
-                        "used non-generic {} `{}` for generic parameter",
-                        opaque_param.kind.descr(),
-                        arg,
-                    ),
-                )
-                .emit();
+            tcx.sess.emit_err(OpaqueTypeNotDefine {
+                cause: OpaqueTyDefineErrCause::NonGenericUsed {
+                    span: tcx.def_span(opaque_param.def_id),
+                    descr: &opaque_param.kind.descr(),
+                    arg: arg.to_string(),
+                },
+                span,
+            });
             return false;
         }
     }

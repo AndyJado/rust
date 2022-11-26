@@ -122,7 +122,7 @@ pub(crate) enum LifetimeReturnCategoryErr<'a> {
     ShortReturn {
         #[primary_span]
         span: Span,
-        category_desc: &'static str,
+        category: &'a str,
         free_region_name: &'a RegionName,
         outlived_fr_name: RegionName,
     },
@@ -444,4 +444,266 @@ pub(crate) enum TypeNoCopy<'a, 'tcx> {
     },
     #[note(borrowck_ty_no_impl_copy)]
     Note { is_partial_move: bool, ty: Ty<'tcx>, place: &'a str },
+}
+
+#[derive(Subdiagnostic)]
+pub(crate) enum AddMoveErr {
+    #[label(borrowck_data_moved_here)]
+    Here {
+        #[primary_span]
+        binding_span: Span,
+    },
+    #[label(borrowck_and_data_moved_here)]
+    AndHere {
+        #[primary_span]
+        binding_span: Span,
+    },
+    #[note(borrowck_moved_var_cannot_copy)]
+    MovedNotCopy,
+}
+
+#[derive(Subdiagnostic)]
+pub(crate) enum OnLifetimeBound<'a> {
+    #[help(borrowck_consider_add_lifetime_bound)]
+    Add { fr_name: &'a RegionName, outlived_fr_name: &'a RegionName },
+}
+
+#[derive(Subdiagnostic)]
+pub(crate) enum FnMutBumpFn<'a> {
+    #[label(borrowck_cannot_act)]
+    Cannot {
+        act: &'a str,
+        #[primary_span]
+        sp: Span,
+    },
+    #[label(borrowck_expects_fnmut_not_fn)]
+    AcceptFnMut {
+        #[primary_span]
+        span: Span,
+    },
+    #[label(borrowck_expects_fn_not_fnmut)]
+    AcceptFn {
+        #[primary_span]
+        span: Span,
+    },
+    #[label(borrowck_empty_label)]
+    EmptyLabel {
+        #[primary_span]
+        span: Span,
+    },
+    #[label(borrowck_in_this_closure)]
+    Here {
+        #[primary_span]
+        span: Span,
+    },
+    #[label(borrowck_return_fnmut)]
+    ReturnFnMut {
+        #[primary_span]
+        span: Span,
+    },
+}
+
+#[derive(Subdiagnostic)]
+pub(crate) enum RegionNameLabels<'a> {
+    #[label(borrowck_name_this_region)]
+    NameRegion {
+        #[primary_span]
+        span: Span,
+        rg_name: &'a RegionName,
+    },
+    #[label(borrowck_lifetime_appears_in_type)]
+    LifetimeInType {
+        #[primary_span]
+        span: Span,
+        type_name: &'a str,
+        rg_name: &'a RegionName,
+    },
+    #[label(borrowck_lifetime_appears_in_type_of)]
+    LifetimeInTypeOf {
+        #[primary_span]
+        span: Span,
+        upvar_name: String,
+        rg_name: &'a RegionName,
+    },
+    #[label(borrowck_yield_type_is_type)]
+    YieldTypeIsTpye {
+        #[primary_span]
+        span: Span,
+        type_name: &'a str,
+    },
+    #[label(borrowck_lifetime_appears_here_in_impl)]
+    LifetimeInImpl {
+        #[primary_span]
+        span: Span,
+        rg_name: &'a RegionName,
+        location: &'a str,
+    },
+}
+
+#[derive(Diagnostic)]
+#[diag(borrowck_type_parameter_not_used_in_trait_type_alias)]
+pub(crate) struct UnusedTypeParameter<'tcx> {
+    pub ty: Ty<'tcx>,
+    #[primary_span]
+    pub span: Span,
+}
+
+#[derive(Diagnostic)]
+#[diag(borrowck_non_defining_opaque_type)]
+pub(crate) struct OpaqueTypeNotDefine {
+    #[primary_span]
+    pub span: Span,
+    #[subdiagnostic]
+    pub cause: OpaqueTyDefineErrCause,
+}
+
+#[derive(Subdiagnostic)]
+pub(crate) enum OpaqueTyDefineErrCause {
+    #[note(borrowck_used_non_generic_for_generic)]
+    NonGenericUsed {
+        #[primary_span]
+        span: Span,
+        descr: &'static str,
+        arg: String,
+    },
+    #[label(borrowck_cannot_use_static_lifetime_here)]
+    UsedStaticLifetime {
+        #[primary_span]
+        span: Span,
+    },
+}
+
+#[derive(Subdiagnostic)]
+pub(crate) enum DefiningTypeNote<'a> {
+    #[note(borrowck_define_type_with_closure_substs)]
+    Closure { type_name: &'a str, subsets: &'a str },
+    #[note(borrowck_define_type_with_generator_substs)]
+    Generator { type_name: &'a str, subsets: &'a str },
+    #[note(borrowck_define_type)]
+    FnDef { type_name: &'a str },
+    #[note(borrowck_define_const_type)]
+    Const { type_name: &'a str },
+    #[note(borrowck_define_inline_constant_type)]
+    InlineConst { type_name: &'a str },
+}
+
+#[derive(Diagnostic)]
+#[diag(borrowck_borrowed_temporary_value_dropped, code = "E0716")]
+pub(crate) struct TemporaryDroppedErr {
+    #[primary_span]
+    pub span: Span,
+}
+
+#[derive(Diagnostic)]
+#[diag(borrowck_thread_local_outlive_function, code = "E0712")]
+pub(crate) struct ThreadLocalOutliveErr {
+    #[primary_span]
+    pub span: Span,
+}
+
+#[derive(Diagnostic)]
+#[diag(borrowck_closure_borrowing_outlive_function, code = "E0373")]
+pub(crate) struct ClosureVarOutliveErr<'a> {
+    pub closure_kind: &'a str,
+    pub borrowed_path: &'a str,
+    #[primary_span]
+    #[label]
+    pub closure_span: Span,
+    #[label(path_label)]
+    pub capture_span: Span,
+}
+
+#[derive(Diagnostic)]
+#[diag(borrowck_cannot_return_ref_to_local, code = "E0515")]
+pub(crate) struct ReturnRefLocalErr<'a> {
+    pub return_kind: &'a str,
+    pub reference: &'a str,
+    pub local: &'a str,
+    #[primary_span]
+    #[label]
+    pub span: Span,
+}
+
+#[derive(Diagnostic)]
+#[diag(borrowck_path_does_not_live_long_enough, code = "E0597")]
+pub(crate) struct PathShortLive<'a> {
+    pub path: &'a str,
+    #[primary_span]
+    pub span: Span,
+}
+
+#[derive(Diagnostic)]
+#[diag(borrowck_cannot_borrow_across_destructor, code = "E0713")]
+pub(crate) struct BorrowAcrossDestructor {
+    #[primary_span]
+    pub borrow_span: Span,
+}
+
+#[derive(Diagnostic)]
+#[diag(borrowck_cannot_borrow_across_generator_yield, code = "E0626")]
+pub(crate) struct BorrowAcrossGeneratorYield {
+    #[primary_span]
+    pub span: Span,
+    #[label]
+    pub yield_span: Span,
+}
+
+#[derive(Diagnostic)]
+#[diag(borrowck_cannot_move_out_of_interior_of_drop, code = "E0509")]
+pub(crate) struct InteriorDropMoveErr<'a> {
+    pub container_ty: Ty<'a>,
+    #[primary_span]
+    #[label]
+    pub move_from_span: Span,
+}
+
+#[derive(Diagnostic)]
+#[diag(borrowck_cannot_assign_to_borrowed, code = "E0506")]
+pub(crate) struct AssignBorrowErr<'a> {
+    pub desc: &'a str,
+    #[primary_span]
+    #[label]
+    pub span: Span,
+    #[label(borrow_here_label)]
+    pub borrow_span: Span,
+}
+
+#[derive(Diagnostic)]
+#[diag(borrowck_cannot_uniquely_borrow_by_two_closures, code = "E0524")]
+pub(crate) struct TwoClosuresUniquelyBorrowErr<'a> {
+    pub desc: &'a str,
+    #[primary_span]
+    pub new_loan_span: Span,
+    #[label]
+    pub old_load_end_span: Option<Span>,
+    #[label(new_span_label)]
+    pub diff_span: Option<Span>,
+    #[subdiagnostic]
+    pub case: ClosureConstructLabel,
+}
+
+#[derive(Subdiagnostic)]
+pub(crate) enum ClosureConstructLabel {
+    #[label(borrowck_first_closure_constructed_here)]
+    First {
+        #[primary_span]
+        old_loan_span: Span,
+    },
+    #[label(borrowck_closures_constructed_here)]
+    Both {
+        #[primary_span]
+        old_loan_span: Span,
+    },
+}
+
+#[derive(Diagnostic)]
+#[diag(borrowck_cannot_use_when_mutably_borrowed, code = "E0503")]
+pub(crate) struct UseMutBorrowErr<'a> {
+    pub desc: &'a str,
+    pub borrow_desc: &'a str,
+    #[primary_span]
+    #[label]
+    pub span: Span,
+    #[label(borrow_span_label)]
+    pub borrow_span: Span,
 }

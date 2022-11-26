@@ -171,9 +171,7 @@ impl OutlivesSuggestionBuilder {
         if let (Some(fr_name), Some(outlived_fr_name)) = (fr_name, outlived_fr_name)
             && !matches!(outlived_fr_name.source, RegionNameSource::Static)
         {
-            diag.help(&format!(
-                "consider adding the following bound: `{fr_name}: {outlived_fr_name}`",
-            ));
+            diag.subdiagnostic(crate::session_diagnostics::OnLifetimeBound::Add { fr_name: &fr_name, outlived_fr_name: &outlived_fr_name });
         }
     }
 
