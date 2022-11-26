@@ -104,7 +104,7 @@ impl<'cx, 'tcx> crate::MirBorrowckCtxt<'cx, 'tcx> {
     pub(crate) fn cannot_uniquely_borrow_by_one_closure(
         &self,
         new_loan_span: Span,
-        container_name: &str,
+        is_generator: bool,
         desc_new: &str,
         opt_via: &str,
         old_loan_span: Span,
@@ -112,30 +112,22 @@ impl<'cx, 'tcx> crate::MirBorrowckCtxt<'cx, 'tcx> {
         old_opt_via: &str,
         previous_end_span: Option<Span>,
     ) -> DiagnosticBuilder<'cx, ErrorGuaranteed> {
-        let mut err = struct_span_err!(
-            self,
+        self.infcx.tcx.sess.create_err(crate::session_diagnostics::ClosureUniquelyBorrowErr {
             new_loan_span,
-            E0500,
-            "closure requires unique access to {} but {} is already borrowed{}",
+            is_generator,
             desc_new,
+            opt_via,
+            old_loan_span,
             noun_old,
             old_opt_via,
-        );
-        err.span_label(
-            new_loan_span,
-            format!("{} construction occurs here{}", container_name, opt_via),
-        );
-        err.span_label(old_loan_span, format!("borrow occurs here{}", old_opt_via));
-        if let Some(previous_end_span) = previous_end_span {
-            err.span_label(previous_end_span, "borrow ends here");
-        }
-        err
+            previous_end_span,
+        })
     }
 
     pub(crate) fn cannot_reborrow_already_uniquely_borrowed(
         &self,
         new_loan_span: Span,
-        container_name: &str,
+        is_generator: &str,
         desc_new: &str,
         opt_via: &str,
         kind_new: &str,
@@ -144,27 +136,17 @@ impl<'cx, 'tcx> crate::MirBorrowckCtxt<'cx, 'tcx> {
         previous_end_span: Option<Span>,
         second_borrow_desc: &str,
     ) -> DiagnosticBuilder<'cx, ErrorGuaranteed> {
-        let mut err = struct_span_err!(
-            self,
+        self.infcx.tcx.sess.create_err(crate::session_diagnostics::ClosureReBorrowErr {
             new_loan_span,
-            E0501,
-            "cannot borrow {}{} as {} because previous closure requires unique access",
+            is_generator,
             desc_new,
             opt_via,
             kind_new,
-        );
-        err.span_label(
-            new_loan_span,
-            format!("{}borrow occurs here{}", second_borrow_desc, opt_via),
-        );
-        err.span_label(
             old_loan_span,
-            format!("{} construction occurs here{}", container_name, old_opt_via),
-        );
-        if let Some(previous_end_span) = previous_end_span {
-            err.span_label(previous_end_span, "borrow from closure ends here");
-        }
-        err
+            old_opt_via,
+            previous_end_span,
+            second_borrow_desc,
+        })
     }
 
     pub(crate) fn cannot_reborrow_already_borrowed(

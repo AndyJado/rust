@@ -923,11 +923,13 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
         let borrow_spans = self.borrow_spans(span, location);
         let span = borrow_spans.args_or_use();
 
+        //FIXME: depercate when done diag migration
         let container_name = if issued_spans.for_generator() || borrow_spans.for_generator() {
             "generator"
         } else {
             "closure"
         };
+        let is_generator = issued_spans.for_generator() || borrow_spans.for_generator();
 
         let (desc_place, msg_place, msg_borrow, union_type_name) =
             self.describe_place_for_conflicting_borrow(place, issued_borrow.borrowed_place);
@@ -1042,7 +1044,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
                 first_borrow_desc = "first ";
                 self.cannot_uniquely_borrow_by_one_closure(
                     span,
-                    container_name,
+                    is_generator,
                     &desc_place,
                     "",
                     issued_span,

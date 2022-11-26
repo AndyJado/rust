@@ -749,3 +749,38 @@ pub(crate) struct MutMultiLoopLabel<'a> {
     #[primary_span]
     pub new_loan_span: Span,
 }
+
+#[derive(Diagnostic)]
+#[diag(borrowck_cannot_uniquely_borrow_by_one_closure, code = "E0500")]
+pub(crate) struct ClosureUniquelyBorrowErr<'a> {
+    #[primary_span]
+    #[label]
+    pub new_loan_span: Span,
+    pub is_generator: bool,
+    pub desc_new: &'a str,
+    pub opt_via: &'a str,
+    #[label(occurs_label)]
+    pub old_loan_span: Span,
+    pub noun_old: &'a str,
+    pub old_opt_via: &'a str,
+    #[label(ends_label)]
+    pub previous_end_span: Option<Span>,
+}
+
+#[derive(Diagnostic)]
+#[diag(borrowck_cannot_reborrow_already_uniquely_borrowed, code = "E0501")]
+pub(crate) struct ClosureReBorrowErr<'a> {
+    #[primary_span]
+    #[label]
+    pub new_loan_span: Span,
+    pub is_generator: &'a str,
+    pub desc_new: &'a str,
+    pub opt_via: &'a str,
+    pub kind_new: &'a str,
+    #[label(occurs_label)]
+    pub old_loan_span: Span,
+    pub old_opt_via: &'a str,
+    #[label(ends_label)]
+    pub previous_end_span: Option<Span>,
+    pub second_borrow_desc: &'a str,
+}

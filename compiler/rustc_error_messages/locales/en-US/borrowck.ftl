@@ -462,3 +462,21 @@ borrowck_cannot_mutably_borrow_multiply =
         [false] {""} (via {$place})
     }
     .first_mut_end_label = first borrow ends here
+
+borrowck_cannot_uniquely_borrow_by_one_closure =
+    closure requires unique access to {$desc_new} but {$noun_old} is already borrowed{$old_opt_via}
+    .label = {$is_generator ->
+        [true] generator
+        *[false] closure
+    } construction occurs here{$opt_via}
+    .occurs_label = borrow occurs here{$old_opt_via}
+    .ends_label = borrow ends here
+
+borrowck_cannot_reborrow_already_uniquely_borrowed =
+    cannot borrow {$desc_new}{$opt_via} as {$kind_new} because previous closure requires unique access
+    .label = {$second_borrow_desc}borrow occurs here{$opt_via}
+    .occurs_label = {$is_generator ->
+        [true] generator
+        *[false] closure
+    } construction occurs here{$old_opt_via}
+    .ends_label = borrow from closure ends here
