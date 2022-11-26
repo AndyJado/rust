@@ -104,7 +104,7 @@ impl<'cx, 'tcx> crate::MirBorrowckCtxt<'cx, 'tcx> {
     pub(crate) fn cannot_uniquely_borrow_by_one_closure(
         &self,
         new_loan_span: Span,
-        is_generator: bool,
+        container_name: &str,
         desc_new: &str,
         opt_via: &str,
         old_loan_span: Span,
@@ -114,7 +114,7 @@ impl<'cx, 'tcx> crate::MirBorrowckCtxt<'cx, 'tcx> {
     ) -> DiagnosticBuilder<'cx, ErrorGuaranteed> {
         self.infcx.tcx.sess.create_err(crate::session_diagnostics::ClosureUniquelyBorrowErr {
             new_loan_span,
-            is_generator,
+            container_name,
             desc_new,
             opt_via,
             old_loan_span,
@@ -127,7 +127,7 @@ impl<'cx, 'tcx> crate::MirBorrowckCtxt<'cx, 'tcx> {
     pub(crate) fn cannot_reborrow_already_uniquely_borrowed(
         &self,
         new_loan_span: Span,
-        is_generator: &str,
+        container_name: &str,
         desc_new: &str,
         opt_via: &str,
         kind_new: &str,
@@ -138,7 +138,7 @@ impl<'cx, 'tcx> crate::MirBorrowckCtxt<'cx, 'tcx> {
     ) -> DiagnosticBuilder<'cx, ErrorGuaranteed> {
         self.infcx.tcx.sess.create_err(crate::session_diagnostics::ClosureReBorrowErr {
             new_loan_span,
-            is_generator,
+            container_name,
             desc_new,
             opt_via,
             kind_new,

@@ -756,7 +756,7 @@ pub(crate) struct ClosureUniquelyBorrowErr<'a> {
     #[primary_span]
     #[label]
     pub new_loan_span: Span,
-    pub is_generator: bool,
+    pub container_name: &'a str,
     pub desc_new: &'a str,
     pub opt_via: &'a str,
     #[label(occurs_label)]
@@ -773,7 +773,7 @@ pub(crate) struct ClosureReBorrowErr<'a> {
     #[primary_span]
     #[label]
     pub new_loan_span: Span,
-    pub is_generator: &'a str,
+    pub container_name: &'a str,
     pub desc_new: &'a str,
     pub opt_via: &'a str,
     pub kind_new: &'a str,
