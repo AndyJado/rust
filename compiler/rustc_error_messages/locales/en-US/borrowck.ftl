@@ -434,3 +434,31 @@ borrowck_cannot_use_when_mutably_borrowed =
         [value] value
         *[other] {$borrow_desc}
     } occurs here
+
+borrowck_cannot_mutably_borrow_multiply_same_span =
+    cannot borrow {$new_place_name}{$is_place_empty ->
+        *[true] {""}
+        [false] {""} (via {$place})
+    } as mutable more than once at a time
+    .label = mutable borrow ends here
+
+borrowck_mutably_borrow_multiply_loop_label =
+    {$new_place_name}{$is_place_empty ->
+        *[true] {""}
+        [false] {""} (via {$place})
+    } was mutably borrowed here in the previous iteration of the loop{$place}
+
+borrowck_cannot_mutably_borrow_multiply =
+    cannot borrow {$new_place_name}{$is_place_empty ->
+        *[true] {""}
+        [false] {""} (via {$place})
+    } as mutable more than once at a time
+    .label = first mutable borrow occurs here{$is_old_place_empty ->
+        *[true] {""}
+        [false] {""} (via {$old_place})
+    }
+    .second_mut_borrow_label = second mutable borrow occurs here{$is_place_empty ->
+        *[true] {""}
+        [false] {""} (via {$place})
+    }
+    .first_mut_end_label = first borrow ends here

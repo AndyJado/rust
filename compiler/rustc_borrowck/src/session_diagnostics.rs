@@ -707,3 +707,45 @@ pub(crate) struct UseMutBorrowErr<'a> {
     #[label(borrow_span_label)]
     pub borrow_span: Span,
 }
+
+#[derive(Diagnostic)]
+pub(crate) enum MutBorrowMulti<'a> {
+    #[diag(borrowck_cannot_mutably_borrow_multiply_same_span, code = "E0499")]
+    SameSpan {
+        new_place_name: &'a str,
+        place: &'a str,
+        old_place: &'a str,
+        is_place_empty: bool,
+        #[primary_span]
+        new_loan_span: Span,
+        #[label]
+        old_load_end_span: Option<Span>,
+        #[subdiagnostic(eager)]
+        eager_label: MutMultiLoopLabel<'a>,
+    },
+    #[diag(borrowck_cannot_mutably_borrow_multiply, code = "E0499")]
+    ChangedSpan {
+        new_place_name: &'a str,
+        place: &'a str,
+        old_place: &'a str,
+        is_place_empty: bool,
+        is_old_place_empty: bool,
+        #[primary_span]
+        #[label(second_mut_borrow_label)]
+        new_loan_span: Span,
+        #[label]
+        old_loan_span: Span,
+        #[label(first_mut_end_label)]
+        old_load_end_span: Option<Span>,
+    },
+}
+
+#[derive(Subdiagnostic)]
+#[label(borrowck_mutably_borrow_multiply_loop_label)]
+pub(crate) struct MutMultiLoopLabel<'a> {
+    pub new_place_name: &'a str,
+    pub place: &'a str,
+    pub is_place_empty: bool,
+    #[primary_span]
+    pub new_loan_span: Span,
+}

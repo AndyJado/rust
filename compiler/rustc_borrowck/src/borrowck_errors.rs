@@ -40,51 +40,43 @@ impl<'cx, 'tcx> crate::MirBorrowckCtxt<'cx, 'tcx> {
     pub(crate) fn cannot_mutably_borrow_multiply(
         &self,
         new_loan_span: Span,
-        desc: &str,
-        opt_via: &str,
+        new_place_name: &str,
+        place: &str,
         old_loan_span: Span,
-        old_opt_via: &str,
+        old_place: &str,
         old_load_end_span: Option<Span>,
     ) -> DiagnosticBuilder<'cx, ErrorGuaranteed> {
-        let via =
-            |msg: &str| if msg.is_empty() { "".to_string() } else { format!(" (via {})", msg) };
-        let mut err = struct_span_err!(
-            self,
-            new_loan_span,
-            E0499,
-            "cannot borrow {}{} as mutable more than once at a time",
-            desc,
-            via(opt_via),
-        );
-        if old_loan_span == new_loan_span {
+        use crate::session_diagnostics::MutBorrowMulti::*;
+        let via = |msg: &str| msg.is_empty();
+        self.infcx.tcx.sess.create_err(if old_loan_span == new_loan_span {
             // Both borrows are happening in the same place
             // Meaning the borrow is occurring in a loop
-            err.span_label(
+            SameSpan {
+                new_place_name,
+                place,
+                old_place,
+                is_place_empty: via(place),
                 new_loan_span,
-                format!(
-                    "{}{} was mutably borrowed here in the previous iteration of the loop{}",
-                    desc,
-                    via(opt_via),
-                    opt_via,
-                ),
-            );
-            if let Some(old_load_end_span) = old_load_end_span {
-                err.span_label(old_load_end_span, "mutable borrow ends here");
+                old_load_end_span,
+                eager_label: crate::session_diagnostics::MutMultiLoopLabel {
+                    new_place_name,
+                    place,
+                    is_place_empty: via(place),
+                    new_loan_span,
+                },
             }
         } else {
-            err.span_label(
-                old_loan_span,
-                format!("first mutable borrow occurs here{}", via(old_opt_via)),
-            );
-            err.span_label(
+            ChangedSpan {
+                new_place_name,
+                place,
+                old_place,
+                is_place_empty: via(place),
+                is_old_place_empty: via(old_place),
                 new_loan_span,
-                format!("second mutable borrow occurs here{}", via(opt_via)),
-            );
-            if let Some(old_load_end_span) = old_load_end_span {
-                err.span_label(old_load_end_span, "first borrow ends here");
+                old_loan_span,
+                old_load_end_span,
             }
-        }
-        err
+        })
     }
 
     pub(crate) fn cannot_uniquely_borrow_by_two_closures(
