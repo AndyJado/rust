@@ -784,3 +784,50 @@ pub(crate) struct ClosureReBorrowErr<'a> {
     pub previous_end_span: Option<Span>,
     pub second_borrow_desc: &'a str,
 }
+
+#[derive(Subdiagnostic)]
+pub(crate) enum BorrowOccurLabel<'a> {
+    #[label(borrowck_borrow_occurs_here)]
+    Here {
+        #[primary_span]
+        span: Span,
+        kind: &'a str,
+    },
+    #[label(borrowck_borrow_occurs_here_overlap)]
+    HereOverlap {
+        #[primary_span]
+        span: Span,
+        kind_new: &'a str,
+        msg_new: &'a str,
+        msg_old: &'a str,
+    },
+    #[label(borrowck_borrow_occurs_here_via)]
+    HereVia {
+        #[primary_span]
+        span: Span,
+        kind_old: &'a str,
+        is_msg_old_empty: bool,
+        msg_old: &'a str,
+    },
+}
+
+#[derive(Diagnostic)]
+#[diag(borrowck_cannot_reborrow_already_borrowed, code = "E0502")]
+pub(crate) struct ReborrowBorrowedErr<'a> {
+    pub desc_new: &'a str,
+    pub is_msg_new_empty: bool,
+    pub msg_new: &'a str,
+    pub kind_new: &'a str,
+    pub noun_old: &'a str,
+    pub kind_old: &'a str,
+    pub is_msg_old_empty: bool,
+    pub msg_old: &'a str,
+    #[primary_span]
+    pub span: Span,
+    #[label]
+    pub old_load_end_span: Option<Span>,
+    #[subdiagnostic(eager)]
+    pub new_occur: BorrowOccurLabel<'a>,
+    #[subdiagnostic(eager)]
+    pub old_occur: BorrowOccurLabel<'a>,
+}

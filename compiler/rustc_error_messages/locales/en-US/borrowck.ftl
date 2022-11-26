@@ -474,3 +474,24 @@ borrowck_cannot_reborrow_already_uniquely_borrowed =
     .label = {$second_borrow_desc}borrow occurs here{$opt_via}
     .occurs_label = {$container_name} construction occurs here{$old_opt_via}
     .ends_label = borrow from closure ends here
+
+borrowck_borrow_occurs_here = {$kind} borrow occurs here
+
+borrowck_borrow_occurs_here_overlap =
+    {$kind_new} borrow of {$msg_new} -- which overlaps with {$msg_old} -- occurs here
+
+borrowck_borrow_occurs_here_via =
+    {$kind_old} borrow occurs here {$is_msg_old_empty ->
+        *[true] {""}
+        [false] (via {$msg_old})
+    }
+
+borrowck_cannot_reborrow_already_borrowed =
+    cannot borrow {$desc_new}{$is_msg_new_empty ->
+        *[true] {""}
+        [false] {""} (via {$msg_new})
+    } as {$kind_new} because {$noun_old} is also borrowed as {$kind_old}{$is_msg_old_empty ->
+        *[true] {""}
+        [false] {""} (via {$msg_old})
+    }
+    .label = {$kind_old} borrow ends here

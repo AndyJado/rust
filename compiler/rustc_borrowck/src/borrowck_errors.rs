@@ -161,41 +161,32 @@ impl<'cx, 'tcx> crate::MirBorrowckCtxt<'cx, 'tcx> {
         msg_old: &str,
         old_load_end_span: Option<Span>,
     ) -> DiagnosticBuilder<'cx, ErrorGuaranteed> {
-        let via =
-            |msg: &str| if msg.is_empty() { "".to_string() } else { format!(" (via {})", msg) };
-        let mut err = struct_span_err!(
-            self,
-            span,
-            E0502,
-            "cannot borrow {}{} as {} because {} is also borrowed as {}{}",
+        use crate::session_diagnostics::BorrowOccurLabel::*;
+        let via = |msg: &str| msg.is_empty();
+        let (new_occur, old_occur) = if msg_new == "" {
+            // If `msg_new` is empty, then this isn't a borrow of a union field.
+            (Here { span, kind: kind_new }, Here { span: old_span, kind: kind_old })
+        } else {
+            // If `msg_new` isn't empty, then this a borrow of a union field.
+            (
+                HereOverlap { span, kind_new, msg_new, msg_old },
+                HereVia { span: old_span, kind_old, is_msg_old_empty: via(msg_old), msg_old },
+            )
+        };
+        self.infcx.tcx.sess.create_err(crate::session_diagnostics::ReborrowBorrowedErr {
             desc_new,
-            via(msg_new),
+            is_msg_new_empty: via(msg_new),
+            msg_new,
             kind_new,
             noun_old,
             kind_old,
-            via(msg_old),
-        );
-
-        if msg_new == "" {
-            // If `msg_new` is empty, then this isn't a borrow of a union field.
-            err.span_label(span, format!("{} borrow occurs here", kind_new));
-            err.span_label(old_span, format!("{} borrow occurs here", kind_old));
-        } else {
-            // If `msg_new` isn't empty, then this a borrow of a union field.
-            err.span_label(
-                span,
-                format!(
-                    "{} borrow of {} -- which overlaps with {} -- occurs here",
-                    kind_new, msg_new, msg_old,
-                ),
-            );
-            err.span_label(old_span, format!("{} borrow occurs here{}", kind_old, via(msg_old)));
-        }
-
-        if let Some(old_load_end_span) = old_load_end_span {
-            err.span_label(old_load_end_span, format!("{} borrow ends here", kind_old));
-        }
-        err
+            is_msg_old_empty: via(msg_old),
+            msg_old,
+            span,
+            old_load_end_span,
+            new_occur,
+            old_occur,
+        })
     }
 
     pub(crate) fn cannot_assign_to_borrowed(
