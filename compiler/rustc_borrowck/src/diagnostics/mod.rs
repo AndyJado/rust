@@ -2,7 +2,7 @@
 
 use itertools::Itertools;
 use rustc_const_eval::util::{call_kind, CallDesugaringKind};
-use rustc_errors::{Applicability, Diagnostic};
+use rustc_errors::Diagnostic;
 use rustc_hir as hir;
 use rustc_hir::def::{CtorKind, Namespace};
 use rustc_hir::GeneratorKind;
@@ -120,13 +120,15 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
                         if let Some((span, hir_place)) =
                             self.infcx.tcx.typeck(did).closure_kind_origins().get(hir_id)
                         {
-                            diag.span_note(
-                                *span,
-                                &format!(
-                                    "closure cannot be invoked more than once because it moves the \
-                                    variable `{}` out of its environment",
-                                    ty::place_to_string_for_capture(self.infcx.tcx, hir_place)
-                                ),
+                            diag.eager_subdiagnostic(
+                                &self.infcx.tcx.sess.parse_sess.span_diagnostic,
+                                crate::session_diagnostics::OnClosureNote::InvokedTwice {
+                                    place_name: &ty::place_to_string_for_capture(
+                                        self.infcx.tcx,
+                                        hir_place,
+                                    ),
+                                    span: *span,
+                                },
                             );
                             return true;
                         }
@@ -144,13 +146,12 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
                 if let Some((span, hir_place)) =
                     self.infcx.tcx.typeck(did).closure_kind_origins().get(hir_id)
                 {
-                    diag.span_note(
-                        *span,
-                        &format!(
-                            "closure cannot be moved more than once as it is not `Copy` due to \
-                             moving the variable `{}` out of its environment",
-                            ty::place_to_string_for_capture(self.infcx.tcx, hir_place)
-                        ),
+                    diag.eager_subdiagnostic(
+                        &self.infcx.tcx.sess.parse_sess.span_diagnostic,
+                        crate::session_diagnostics::OnClosureNote::MovedTwice {
+                            place_name: &ty::place_to_string_for_capture(self.infcx.tcx, hir_place),
+                            span: *span,
+                        },
                     );
                     return true;
                 }
@@ -593,9 +594,13 @@ impl UseSpans<'_> {
     }
 
     /// Add a span label to the arguments of the closure, if it exists.
-    pub(super) fn args_span_label(self, err: &mut Diagnostic, message: impl Into<String>) {
+    pub(super) fn args_subdiag(
+        self,
+        err: &mut Diagnostic,
+        f: impl FnOnce(Span) -> crate::session_diagnostics::CaptureArgLabel,
+    ) {
         if let UseSpans::ClosureUse { args_span, .. } = self {
-            err.span_label(args_span, message);
+            err.subdiagnostic(f(args_span));
         }
     }
 
@@ -630,32 +635,13 @@ impl UseSpans<'_> {
         }
     }
 
-    /// Add a span label to the use of the captured variable, if it exists.
-    pub(super) fn var_span_label(
-        self,
-        err: &mut Diagnostic,
-        message: impl Into<String>,
-        kind_desc: impl Into<String>,
-    ) {
-        if let UseSpans::ClosureUse { capture_kind_span, path_span, .. } = self {
-            if capture_kind_span == path_span {
-                err.span_label(capture_kind_span, message);
-            } else {
-                let capture_kind_label =
-                    format!("capture is {} because of use here", kind_desc.into());
-                let path_label = message;
-                err.span_label(capture_kind_span, capture_kind_label);
-                err.span_label(path_span, path_label);
-            }
-        }
-    }
-
     /// Add a subdiagnostic to the use of the captured variable, if it exists.
     pub(super) fn var_subdiag(
         self,
+        handler: Option<&rustc_errors::Handler>,
         err: &mut Diagnostic,
         kind: Option<rustc_middle::mir::BorrowKind>,
-        f: impl Fn(Option<GeneratorKind>, Span) -> crate::session_diagnostics::CaptureVarCause,
+        f: impl FnOnce(Option<GeneratorKind>, Span) -> crate::session_diagnostics::CaptureVarCause,
     ) {
         use crate::session_diagnostics::CaptureVarKind::*;
         if let UseSpans::ClosureUse { generator_kind, capture_kind_span, path_span, .. } = self {
@@ -665,7 +651,7 @@ impl UseSpans<'_> {
                         rustc_middle::mir::BorrowKind::Shared
                         | rustc_middle::mir::BorrowKind::Shallow
                         | rustc_middle::mir::BorrowKind::Unique => {
-                            Immute { kind_span: capture_kind_span }
+                            Immut { kind_span: capture_kind_span }
                         }
 
                         rustc_middle::mir::BorrowKind::Mut { .. } => {
@@ -675,7 +661,11 @@ impl UseSpans<'_> {
                     None => Move { kind_span: capture_kind_span },
                 });
             };
-            err.subdiagnostic(f(generator_kind, path_span));
+            let diag = f(generator_kind, path_span);
+            match handler {
+                Some(hd) => err.eager_subdiagnostic(hd, diag),
+                None => err.subdiagnostic(diag),
+            };
         }
     }
 
@@ -692,20 +682,6 @@ impl UseSpans<'_> {
         match *self {
             UseSpans::ClosureUse { generator_kind, .. } => generator_kind.is_some(),
             _ => false,
-        }
-    }
-
-    /// Describe the span associated with a use of a place.
-    pub(super) fn describe(&self) -> &str {
-        match *self {
-            UseSpans::ClosureUse { generator_kind, .. } => {
-                if generator_kind.is_some() {
-                    " in generator"
-                } else {
-                    " in closure"
-                }
-            }
-            _ => "",
         }
     }
 
@@ -1023,12 +999,15 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
         move_span: Span,
         move_spans: UseSpans<'tcx>,
         moved_place: Place<'tcx>,
-        partially_str: &str,
-        loop_message: &str,
-        move_msg: &str,
+        is_partial: bool,
+        is_loop_message: bool,
+        is_move_msg: bool,
         is_loop_move: bool,
         maybe_reinitialized_locations_is_empty: bool,
     ) {
+        use crate::session_diagnostics::CaptureReasonLabel::*;
+        use crate::session_diagnostics::CaptureReasonNote::*;
+        use crate::session_diagnostics::CaptureReasonSuggest::*;
         if let UseSpans::FnSelfUse { var_span, fn_call_span, fn_span, kind } = move_spans {
             let place_name = self
                 .describe_place(moved_place.as_ref())
@@ -1038,7 +1017,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
                 CallKind::FnCall { fn_trait_id, .. }
                     if Some(fn_trait_id) == self.infcx.tcx.lang_items().fn_once_trait() =>
                 {
-                    err.span_label(
+                    err.subdiagnostic(Call {
                         fn_call_span,
                         &format!(
                             "{place_name} {partially_str}moved due to this call{loop_message}",
@@ -1051,7 +1030,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
                 }
                 CallKind::Operator { self_arg, .. } => {
                     let self_arg = self_arg.unwrap();
-                    err.span_label(
+                    err.subdiagnostic(OperatorUse {
                         fn_call_span,
                         &format!(
                             "{place_name} {partially_str}moved due to usage in operator{loop_message}",
@@ -1094,7 +1073,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
                             );
                         }
 
-                        err.span_label(
+                        err.subdiagnostic(ImplicitCall {
                             fn_call_span,
                             &format!(
                                 "{place_name} {partially_str}moved due to this implicit call to `.into_iter()`{loop_message}",
@@ -1122,7 +1101,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
                             }
                         }
                     } else {
-                        err.span_label(
+                        err.subdiagnostic(MethodCall {
                             fn_call_span,
                             &format!(
                                 "{place_name} {partially_str}moved due to this method call{loop_message}",
@@ -1191,30 +1170,26 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
                         matches!(tcx.get_diagnostic_name(def_id), Some(sym::Option | sym::Result))
                     });
                     if is_option_or_result && maybe_reinitialized_locations_is_empty {
-                        err.span_label(
-                            var_span,
-                            "help: consider calling `.as_ref()` or `.as_mut()` to borrow the type's contents",
-                        );
+                        err.subdiagnostic(BorrowContent { var_span });
                     }
                 }
                 // Other desugarings takes &self, which cannot cause a move
                 _ => {}
             }
         } else {
-            if move_span != span || !loop_message.is_empty() {
-                err.span_label(
-                    move_span,
-                    format!("value {partially_str}moved{move_msg} here{loop_message}"),
-                );
+            if move_span != span || is_loop_message {
+                err.subdiagnostic(Desc { move_span, is_partial, is_move_msg, is_loop_message });
             }
             // If the move error occurs due to a loop, don't show
             // another message for the same span
-            if loop_message.is_empty() {
-                move_spans.var_span_label(
-                    err,
-                    format!("variable {partially_str}moved due to use{}", move_spans.describe()),
-                    "moved",
-                );
+            if !is_loop_message {
+                move_spans.var_subdiag(None, err, None, |kind, var_span| {
+                    use crate::session_diagnostics::CaptureVarCause::*;
+                    match kind {
+                        Some(_) => PartialMoveUseInGenerator { var_span, is_partial },
+                        None => PartialMoveUseInClosure { var_span, is_partial },
+                    }
+                })
             }
         }
     }
